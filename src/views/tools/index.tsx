@@ -28,26 +28,30 @@ export const AccountToolsView = () => {
 
   useEffect(() => {
     if (groupedTokenAccounts) {
-      console.log(groupedTokenAccounts);
 
       var tempTokenCards: any[] = [];
       Object.keys(groupedTokenAccounts).forEach((key) => {
         setTokenCards(tempTokenCards.concat(
           <Card className='token-card' key={key}>
             <Row justify="space-around">
-              <Col span={4}>
-                <div>
-                  <div>
-                    <SmileOutlined /> TOKEN
-                  </div>
-                  <div>
-                    <small>Asset</small>
-                  </div>
-                </div>
+              <Col span={8}>
+                <Row>
+                  <Col>
+                    <span className="dot"></span>
+                  </Col>
+                  <Col>
+                    <div>
+                      TOKEN
+                    </div>
+                    <div>
+                      <small>Asset</small>
+                    </div>
+                  </Col>
+                </Row>
               </Col>
               <Col span={4}>
                 <div>
-                  <div style={{color:'#05bb8c'}}>
+                  <div style={{ color: '#05bb8c' }}>
                     {truncateString(key)}
                   </div>
                   <div>
@@ -62,10 +66,13 @@ export const AccountToolsView = () => {
                     {groupedTokenAccounts[key].totalBalance}
                   </div>
                   <div>
-                    <small>$$$$$</small>
+                    <small>= $...</small>
                   </div>
-                </div></Col>
-              <Col span={4}><button className='step-button' onClick={(e) => { clickMigrate(key) }}>Migrate</button></Col>
+                </div>
+                </Col>
+              <Col span={8}>
+                <button className='step-button' onClick={(e) => { clickMigrate(key) }}>Migrate</button>
+                </Col>
             </Row>
           </Card>
         ));
@@ -109,7 +116,7 @@ export const AccountToolsView = () => {
       } else {
         mergeTokens(instructions, groupedTokenAccounts, connection, publicKey, []);
       }
-      
+
 
       instructions.forEach(instruct => {
         transaction.add(instruct);
@@ -150,7 +157,7 @@ export const AccountToolsView = () => {
                 <Panel className="custom-collapsed-tools" showArrow={false} header={<div><InfoCircleFilled /> Migrate Associated Token Accounts</div>} key="1">
                   <div className="tools-subtext">
                     <span>
-                      Some dApps on Solana create new addresses for each token you own in form of <a style={{color:'#05bb8c'}} href="https://spl.solana.com/associated-token-account">associated token accounts</a>.
+                      Some dApps on Solana create new addresses for each token you own in form of <a style={{ color: '#05bb8c' }} href="https://spl.solana.com/associated-token-account">associated token accounts</a>.
                       You can use this page to migrate these tokens to your main address.
                     </span>
                     <div className="tools-infotext">
@@ -165,9 +172,9 @@ export const AccountToolsView = () => {
                             <button className='step-button' onClick={(e) => { clickMigrate() }}>Migrate All</button>
                           </div>
                         </Col>
-                      
+
                       </Row>
-                        
+
                     </div>
                     {tokenCards}
                   </div>

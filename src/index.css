@@ -55,23 +55,35 @@ code {
   background: #202020 !important;
 }
 
-
 .step-button {
 	background-color:#024031;
 	border-radius:4px;
 	display:inline-block;
 	cursor:pointer;
 	color:#06d69e;
-	font-size:17px;
+	font-size:12px;
 	font-weight:bold;
-  width: 150px;
+  width: 100px;
   border: none;
-	padding:10px 10px;
+	padding:6px 6px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #024031;
 }
 
+.dot {
+  height: 25px;
+  width: 25px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+}
+
 /* TODO CLEANUP */
+.ant-layout-header {
+  background: #000000 !important;
+
+}
+
 .ant-collapse-item-disabled .ant-collapse-header {
   background: #024030;
   font-size: 22px;

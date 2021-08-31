@@ -58,9 +58,8 @@ export function mergeTokens(
         const ataInfo = groupedTokenAccounts[key].ataInfo;
         const auxAccts = groupedTokenAccounts[key].auxAccounts;
         const balances = groupedTokenAccounts[key].balances;
-        console.log(ataInfo)
+
         if (!ataInfo) {
-            console.log('create ata instruction');
             instructions.push(
                 Token.createAssociatedTokenAccountInstruction(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, new PublicKey(key), new PublicKey(ata), owner, owner)
             );

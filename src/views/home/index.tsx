@@ -26,12 +26,12 @@ export const HomeView = () => {
       }
       let instructions: TransactionInstruction[] = [];
       let transaction: Transaction = new Transaction();
-      console.log(instructions);
+
       const signers: any = []
       const mintTestToken = new PublicKey(mint);
 
       // Creates 2 aux
-      const value = await createDuplicateTokenAccount(instructions, publicKey, 10000000, mintTestToken, publicKey,  signers)
+      const value = await createDuplicateTokenAccount(instructions, publicKey, 2500000, mintTestToken, publicKey,  signers)
 
       instructions.forEach(instruct => {
         transaction.add(instruct);
@@ -43,13 +43,11 @@ export const HomeView = () => {
       const result = await sendTransaction(connection, hackyWallet, instructions, signers);
       
       notify({
-        // TODO change labels
         message: LABELS.TOKEN_SCRAMBLED,
         type: "success",
       });
     } catch (error) {
       notify({
-        // TODO change labels
         message: LABELS.TOKEN_SCRAMBLED_FAILED,
         type: "error",
       });

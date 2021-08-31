@@ -665,54 +665,15 @@ export const groupMigTokens = async (
   const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
     programId: TOKEN_PROGRAM_ID,
   });
-  console.log(tokenAccounts);
+
   let count = 0;
   let groupedTokenAccounts: GroupedTokenAccounts = {};
 
-  /*await new Promise<void>((resolve) => {
-    tokenAccounts.value.forEach(async (ta: any) => {
-      try {
-        const key = ta.account.data.parsed.info.mint.toString();
-        let balance = (await connection.getTokenAccountBalance(ta.pubkey)).value.uiAmount;
-        balance = balance ? balance: 0;     
-        console.log(ta.pubkey.toString()); 
-        const ata = (await findAssociatedTokenAddress(publicKey, new PublicKey(key))).toString();
-  
-        if (ata !== ta.pubkey.toString()) {
-          if (groupedTokenAccounts[key]) {
-            groupedTokenAccounts[key].auxAccounts.push(ta.pubkey.toString());
-            groupedTokenAccounts[key].balance += balance;
-            console.log('pong');
-          } else {
-            let ataBalance = (await connection.getTokenAccountBalance(new PublicKey(ata))).value.uiAmount; 
-            ataBalance = ataBalance ? ataBalance: 0;   
-            balance += ataBalance;   
-            groupedTokenAccounts[key] = { auxAccounts: [ta.pubkey.toString()], ata: ata, balance: balance };
-            console.log('ping');
-          }
-
-        } else {
-          console.log('pass');
-        }
-      } catch (e) {
-        // TODO proper error handeling
-        console.log(e);
-      } finally {
-        count += 1;
-        if (count == tokenAccounts.value.length) {
-          resolve();
-        }
-      }
-    });
-
-  });*/
-
-  for (const ta of tokenAccounts.value) {
-    try {
+  try {
+    for (const ta of tokenAccounts.value) {
       const key = ta.account.data.parsed.info.mint.toString();
       let balance = (await connection.getTokenAccountBalance(ta.pubkey)).value;
       let balanceFormatted = balance.uiAmount ? balance.uiAmount : 0;
-      console.log(ta.pubkey.toString());
       let ata = (await findAssociatedTokenAddress(publicKey, new PublicKey(key))).toString();
       const ataInfo = await connection.getAccountInfo(new PublicKey(ata));
 
@@ -725,19 +686,16 @@ export const groupMigTokens = async (
           let ataBalance;
           if (ataInfo) {
             ataBalance = (await connection.getTokenAccountBalance(new PublicKey(ata))).value.uiAmount;
-          } 
+          }
           ataBalance = ataBalance ? ataBalance : 0;
           const totalBalance = ataBalance + balanceFormatted;
-          groupedTokenAccounts[key] = { auxAccounts: [ta.pubkey.toString()],balances: [parseInt(balance.amount)], ata: ata, ataInfo: ataInfo, totalBalance: totalBalance };
+          groupedTokenAccounts[key] = { auxAccounts: [ta.pubkey.toString()], balances: [parseInt(balance.amount)], ata: ata, ataInfo: ataInfo, totalBalance: totalBalance };
         }
 
-      } else {
-        console.log('pass');
       }
-    } catch (e) {
-      // TODO proper error handeling
-      console.log(e);
     }
+  } catch (e) {
+    console.error(e);
   }
 
   return groupedTokenAccounts;
