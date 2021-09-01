@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { sendTransaction, useConnection, useConnectionConfig } from "../../contexts/connection";
+import { sendTransaction, useConnection, useConnectionConfig, } from "../../contexts/connection";
 import { LAMPORTS_PER_SOL, Transaction, TransactionInstruction } from "@solana/web3.js";
 import { notify } from "../../utils/notifications";
 import { LABELS } from "../../constants";
@@ -7,10 +7,12 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
 import { Row, Col, Collapse, Space, Card } from 'antd';
 import { groupMigTokens } from "../../contexts/accounts";
-import { GroupedTokenAccounts } from "../../models";
+import { GroupedTokenAccounts, TokenAccount } from "../../models";
 import { mergeTokens } from "../../actions";
-import { CheckCircleFilled, CheckCircleTwoTone, InfoCircleFilled, SmileOutlined, ToolFilled } from "@ant-design/icons";
+import { CheckCircleFilled, InfoCircleFilled, ToolFilled } from "@ant-design/icons";
 import spoof from "../../left_side.png";
+import { useUserAccounts, useGroupedTokenAccounts, useTokenCards, useAssociatedTokenAccounts } from "../../hooks";
+import { MigrateableTokenDisplay } from "../../components/MigrateableTokenDisplay";
 
 export const AccountToolsView = () => {
   const connection = useConnection();
@@ -19,6 +21,11 @@ export const AccountToolsView = () => {
   const [groupedTokenAccounts, setGroupedTokenAccounts] = useState<GroupedTokenAccounts>();
   const [tokenCards, setTokenCards] = useState<any>([]);
 
+  const tokenNames = useGroupedTokenAccounts();
+  const userAccounts = useUserAccounts();
+  const tokenCardsData = useTokenCards();
+  const tokens = useAssociatedTokenAccounts();
+
   useEffect(() => {
     if (publicKey) {
       handleMigrateRequest();
@@ -26,13 +33,11 @@ export const AccountToolsView = () => {
   }, [publicKey]);
 
 
-  useEffect(() => {
-    if (groupedTokenAccounts) {
-
+  /*useEffect(() => {
       var tempTokenCards: any[] = [];
-      Object.keys(groupedTokenAccounts).forEach((key) => {
+      tokenCardsData.forEach((tokenCard) => {
         setTokenCards(tempTokenCards.concat(
-          <Card className='token-card' key={key}>
+          <Card className='token-card' key={tokenCard.mint}>
             <Row justify="space-around">
               <Col span={8}>
                 <Row>
@@ -41,7 +46,7 @@ export const AccountToolsView = () => {
                   </Col>
                   <Col>
                     <div>
-                      TOKEN
+                      {tokenCard.tokenName}
                     </div>
                     <div>
                       <small>Asset</small>
@@ -52,7 +57,7 @@ export const AccountToolsView = () => {
               <Col span={4}>
                 <div>
                   <div style={{ color: '#05bb8c' }}>
-                    {truncateString(key)}
+                    {truncateString(tokenCard.mint)}
                   </div>
                   <div>
                     <small>Account</small>
@@ -63,22 +68,21 @@ export const AccountToolsView = () => {
               <Col span={4}>
                 <div>
                   <div>
-                    {groupedTokenAccounts[key].totalBalance}
+                    {tokenCard.balance}
                   </div>
                   <div>
-                    <small>= $...</small>
+                    <small>= ${tokenCard.balanceUSD}</small>
                   </div>
                 </div>
                 </Col>
               <Col span={8}>
-                <button className='step-button' onClick={(e) => { clickMigrate(key) }}>Migrate</button>
+                <button className='step-button' onClick={(e) => { clickMigrate(tokenCard.mint) }}>Migrate</button>
                 </Col>
             </Row>
           </Card>
         ));
       })
-    }
-  }, [groupedTokenAccounts, signTransaction]);
+  }, [tokenCardsData, signTransaction]);*/
 
   const handleMigrateRequest = useCallback(async () => {
     try {
@@ -141,6 +145,20 @@ export const AccountToolsView = () => {
     }
   }
 
+  function testOnClick(e: React.MouseEvent<HTMLElement, MouseEvent>) {
+    console.log(e.currentTarget.id);
+    console.log(tokens);
+    /*const value = userAccounts.userAccounts;
+    value.forEach(element => { 
+      console.log('New token acct');
+      console.log(element.pubkey.toString());
+      console.log(element.info.amount.toString());
+      console.log(element.account.owner.toString());
+    })*/
+
+
+  }
+
   return (
     <Row className='tools-page'>
       <Col span={4}>
@@ -151,6 +169,7 @@ export const AccountToolsView = () => {
           <div className="tools-title">
             <ToolFilled color='white' /> Account Cleanup Tools
           </div>
+          <button onClick={testOnClick}>test</button>
           <Space >
             <Collapse ghost>
               {groupedTokenAccounts ? (
@@ -176,7 +195,7 @@ export const AccountToolsView = () => {
                       </Row>
 
                     </div>
-                    {tokenCards}
+                    <MigrateableTokenDisplay onClick={(e) => { testOnClick(e) }}/>
                   </div>
                 </Panel>
               ) : (

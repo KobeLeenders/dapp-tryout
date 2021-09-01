@@ -10,6 +10,7 @@ import { createDuplicateTokenAccount } from "../../actions";
 import { useConnection } from "../../contexts/connection";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { TransactionInstruction, PublicKey, Transaction } from "@solana/web3.js";
+import { useUserBalance } from "../../hooks";
 
 
 export const HomeView = () => {
@@ -18,6 +19,8 @@ export const HomeView = () => {
   const [ mint, setMint] = useState('C4xYD4886ZDDFNnKHAJ11RSCQSnhuMED2qcz8mJiytNb');
 
   const handleMintChange = (e: any) =>setMint(e.target.value);
+
+  const test = useUserBalance();
 
   const handleDuplicateAccountCreation = useCallback(async () => {
     try {

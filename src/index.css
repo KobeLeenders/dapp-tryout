@@ -78,7 +78,7 @@ code {
   display: inline-block;
 }
 
-/* TODO CLEANUP */
+/* TODO CLEANUP make sure it only affects the tool code */
 .ant-layout-header {
   background: #000000 !important;
 

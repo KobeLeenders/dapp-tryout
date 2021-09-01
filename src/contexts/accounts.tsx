@@ -6,6 +6,7 @@ import {
   ConfirmedTransaction,
   Connection,
   PublicKey,
+  TokenAccountBalancePair,
 } from "@solana/web3.js";
 import { AccountLayout, u64, MintInfo, MintLayout } from "@solana/spl-token";
 import { GroupedTokenAccounts, TokenAccount } from "./../models";
@@ -21,12 +22,18 @@ const AccountsContext = React.createContext<any>(null);
 
 const pendingCalls = new Map<string, Promise<ParsedAccountBase>>();
 const genericCache = new Map<string, ParsedAccountBase>();
+const migrateCache = new Map<string, ParsedMigratableAccounts>();
 const transactionCache = new Map<string, ParsedLocalTransaction | null>();
 
 export interface ParsedLocalTransaction {
   transactionType: number;
   signature: ConfirmedSignatureInfo;
   confirmedTx: ConfirmedTransaction | null;
+}
+
+export interface ParsedMigratableAccounts {
+  accounts: TokenAccountBalancePair[];
+  totalBalance: number;
 }
 
 export interface ParsedAccountBase {
@@ -159,7 +166,24 @@ export const cache = {
       return;
     }
 
+    const mint = account.info.mint;
+
     const isNew = !genericCache.has(address);
+    const isMigrateable = migrateCache.has(mint);
+    
+    console.log('isNew');
+    console.log(isNew)
+    console.log(address)
+    
+    console.log('isMigrateable');
+    console.log(isMigrateable);
+    if (mint) {
+      if (isMigrateable) {
+
+      } else {
+        //migrateCache.set(mint, new )
+      }
+    }
 
     genericCache.set(address, account);
     cache.emitter.raiseCacheUpdated(address, isNew, deserialize);
@@ -327,6 +351,13 @@ const precacheUserTokenAccounts = async (
   const accounts = await connection.getTokenAccountsByOwner(owner, {
     programId: programIds().token,
   });
+  /*for (const info of accounts.value) {
+    /*let ata = (await findAssociatedTokenAddress(publicKey, new PublicKey(key))).toString();
+    const ataInfo = await connection.getAccountInfo(new PublicKey(ata));*/
+
+   /* cache.add(info.pubkey.toBase58(), info.account, TokenAccountParser);
+  }*/
+  
   accounts.value.forEach((info) => {
     cache.add(info.pubkey.toBase58(), info.account, TokenAccountParser);
   });
@@ -397,8 +428,15 @@ export function AccountsProvider({ children = null as any }) {
           // TODO: do we need a better way to identify layout (maybe a enum identifing type?)
           if (info.accountInfo.data.length === AccountLayout.span) {
             const data = deserializeAccount(info.accountInfo.data);
+            console.log('data');
+            //console.log(data);
 
             if (PRECACHED_OWNERS.has(data.owner.toBase58())) {
+              console.log('info.accountInfo');
+              console.log(info.accountInfo);
+              //const buffer = Buffer.from(info.accountInfo.data);
+              //const data = deserializeAccount(buffer);
+              //console.log(data);
               cache.add(id, info.accountInfo, TokenAccountParser);
               setTokenAccounts(selectUserAccounts());
             }
