@@ -6,6 +6,7 @@ import {
   PublicKey,
   Transaction,
   TransactionInstruction,
+  AccountInfo,
 } from "@solana/web3.js";
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { notify } from "./../utils/notifications";
@@ -59,6 +60,11 @@ interface ConnectionConfig {
   tokenMap: Map<string, TokenInfo>;
 }
 
+export interface AssociatedTokenAccounts {
+  ata: PublicKey;
+  ataInfo?: AccountInfo<any>;
+}
+
 const ConnectionContext = React.createContext<ConnectionConfig>({
   endpoint: DEFAULT,
   setEndpoint: () => {},
@@ -95,6 +101,8 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
+  const [ataMap, setAtaMap] = useState<Map<string, PublicKey>>(new Map());
+
   useEffect(() => {
     cache.clear();
     // fetch token files
@@ -112,6 +120,8 @@ export function ConnectionProvider({ children = undefined as any }) {
       const accounts = await getMultipleAccounts(connection, [...knownMints.keys()], 'single');
       accounts.keys.forEach((key, index) => {
         const account = accounts.array[index];
+        console.log('key');
+        console.log('HIEEEER ' + key);
         if(!account) {
           return;
         }

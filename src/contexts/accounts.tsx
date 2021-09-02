@@ -22,7 +22,7 @@ const AccountsContext = React.createContext<any>(null);
 
 const pendingCalls = new Map<string, Promise<ParsedAccountBase>>();
 const genericCache = new Map<string, ParsedAccountBase>();
-const migrateCache = new Map<string, ParsedMigratableAccounts>();
+const ataCache = new Map<string, PublicKey>();
 const transactionCache = new Map<string, ParsedLocalTransaction | null>();
 
 export interface ParsedLocalTransaction {
@@ -167,23 +167,16 @@ export const cache = {
     }
 
     const mint = account.info.mint;
+    const owner = account.info.owner;
 
     const isNew = !genericCache.has(address);
-    const isMigrateable = migrateCache.has(mint);
-    
-    console.log('isNew');
-    console.log(isNew)
-    console.log(address)
-    
-    console.log('isMigrateable');
-    console.log(isMigrateable);
-    if (mint) {
-      if (isMigrateable) {
+    const hasAta = ataCache.has(mint);
 
-      } else {
-        //migrateCache.set(mint, new )
-      }
-    }
+    /*if (mint && owner) {
+      getAssociatedTokenAddress(owner, mint).then((ata) => {
+        ataCache.set(mint, ata);
+      })    
+    }*/
 
     genericCache.set(address, account);
     cache.emitter.raiseCacheUpdated(address, isNew, deserialize);
@@ -351,13 +344,18 @@ const precacheUserTokenAccounts = async (
   const accounts = await connection.getTokenAccountsByOwner(owner, {
     programId: programIds().token,
   });
-  /*for (const info of accounts.value) {
-    /*let ata = (await findAssociatedTokenAddress(publicKey, new PublicKey(key))).toString();
-    const ataInfo = await connection.getAccountInfo(new PublicKey(ata));*/
 
-   /* cache.add(info.pubkey.toBase58(), info.account, TokenAccountParser);
+  /*if (mint && owner) {
+    getAssociatedTokenAddress(owner, mint).then((ata) => {
+      ataCache.set(mint, ata);
+    })    
   }*/
-  
+  /*for (const info of accounts.value) {
+    /*const mint = account.info.mint;
+    const owner = account.info.owner;
+    let ata = (await findAssociatedTokenAddress(publicKey, new PublicKey(key))).toString();*/
+  //}
+
   accounts.value.forEach((info) => {
     cache.add(info.pubkey.toBase58(), info.account, TokenAccountParser);
   });
@@ -370,6 +368,7 @@ export function AccountsProvider({ children = null as any }) {
   const [userAccounts, setUserAccounts] = useState<TokenAccount[]>([]);
   const { nativeAccount } = UseNativeAccount();
   const [migTokenAccounts, setMigTokenAccounts] = useState();
+  const [ataMap, setAtaMap] = useState<Map<string, TokenAccount>>(new Map());
 
   const selectUserAccounts = useCallback(() => {
     if (!publicKey) {
@@ -390,6 +389,11 @@ export function AccountsProvider({ children = null as any }) {
       (a) => a !== undefined
     ) as TokenAccount[];
     setUserAccounts(accounts);
+    if (publicKey) {
+      getAssociatedTokenAddresses(publicKey, accounts, connection).then((value) => {
+        setAtaMap(value);
+      })
+    }
   }, [nativeAccount, wallet, tokenAccounts, selectUserAccounts]);
 
   useEffect(() => {
@@ -428,17 +432,18 @@ export function AccountsProvider({ children = null as any }) {
           // TODO: do we need a better way to identify layout (maybe a enum identifing type?)
           if (info.accountInfo.data.length === AccountLayout.span) {
             const data = deserializeAccount(info.accountInfo.data);
-            console.log('data');
-            //console.log(data);
+            //console.log('data');
+            //console.log(dataq);
 
             if (PRECACHED_OWNERS.has(data.owner.toBase58())) {
-              console.log('info.accountInfo');
-              console.log(info.accountInfo);
+              console.log('selectUserAccounts');
               //const buffer = Buffer.from(info.accountInfo.data);
               //const data = deserializeAccount(buffer);
               //console.log(data);
               cache.add(id, info.accountInfo, TokenAccountParser);
-              setTokenAccounts(selectUserAccounts());
+              const test = selectUserAccounts()
+              console.log(test);
+              setTokenAccounts(test);
             }
           }
         },
@@ -456,6 +461,7 @@ export function AccountsProvider({ children = null as any }) {
       value={{
         userAccounts,
         nativeAccount,
+        ataMap,
       }}
     >
       {children}
@@ -674,6 +680,42 @@ const deserializeMint = (data: Buffer) => {
 export const ASSOCIATED_TOKEN_PROGRAM_ID = new PublicKey(
   'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
 );
+
+const getAssociatedTokenAddresses = async (
+  walletAddress: PublicKey,
+  accounts: TokenAccount[],
+  connection: Connection,
+) => {
+  const tempMap: Map<string, TokenAccount> = new Map();
+
+  for (const info of accounts) {
+    const mint = info.info.mint;
+    if (mint && info.info.owner) {
+      const ata = (await PublicKey.findProgramAddress(
+        [
+          walletAddress.toBuffer(),
+          TokenInstructions.TOKEN_PROGRAM_ID.toBuffer(),
+          mint.toBuffer(),
+        ],
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+      ))[0];
+      const ataInfo = await connection.getAccountInfo(new PublicKey(ata));
+      if (ataInfo) {
+        const data = TokenAccountParser(ata, ataInfo)
+        tempMap.set(mint.toString(), data);
+      }
+    }
+  }
+
+  return tempMap;
+  //const hasAta = ataCache.has(mint);
+
+  /*if (mint && owner) {
+    getAssociatedTokenAddress(owner, mint).then((ata) => {
+      ataCache.set(mint, ata);
+    })    
+  }*/
+}
 
 
 const findAssociatedTokenAddress = async (

@@ -45,7 +45,7 @@ export function createDuplicateTokenAccount(
 
 export function mergeTokens(
     instructions: TransactionInstruction[],
-    groupedTokenAccounts: GroupedTokenAccounts,
+    groupedTokenAccounts: Map<string, TokenAccount[]>,
     connection: Connection,
     owner: PublicKey,
     signers: Account[],
@@ -54,7 +54,7 @@ export function mergeTokens(
     const mergeableList = mint ? [mint.toString()] : Object.keys(groupedTokenAccounts);
 
     mergeableList.forEach((key) => {
-        const ata = groupedTokenAccounts[key].ata;
+        const ata = groupedTokenAccounts.get(key);
         const ataInfo = groupedTokenAccounts[key].ataInfo;
         const auxAccts = groupedTokenAccounts[key].auxAccounts;
         const balances = groupedTokenAccounts[key].balances;

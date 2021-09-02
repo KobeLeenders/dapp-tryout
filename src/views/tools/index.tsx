@@ -11,7 +11,7 @@ import { GroupedTokenAccounts, TokenAccount } from "../../models";
 import { mergeTokens } from "../../actions";
 import { CheckCircleFilled, InfoCircleFilled, ToolFilled } from "@ant-design/icons";
 import spoof from "../../left_side.png";
-import { useUserAccounts, useGroupedTokenAccounts, useTokenCards, useAssociatedTokenAccounts } from "../../hooks";
+import { useUserAccounts, useGroupedAuxTokenAccounts, useTokenCards, useAssociatedTokenAccounts } from "../../hooks";
 import { MigrateableTokenDisplay } from "../../components/MigrateableTokenDisplay";
 
 export const AccountToolsView = () => {
@@ -21,10 +21,11 @@ export const AccountToolsView = () => {
   const [groupedTokenAccounts, setGroupedTokenAccounts] = useState<GroupedTokenAccounts>();
   const [tokenCards, setTokenCards] = useState<any>([]);
 
-  const tokenNames = useGroupedTokenAccounts();
+  const tokenNames = useGroupedAuxTokenAccounts();
   const userAccounts = useUserAccounts();
   const tokenCardsData = useTokenCards();
   const tokens = useAssociatedTokenAccounts();
+  const atas = useAssociatedTokenAccounts();
 
   useEffect(() => {
     if (publicKey) {
@@ -146,8 +147,9 @@ export const AccountToolsView = () => {
   }
 
   function testOnClick(e: React.MouseEvent<HTMLElement, MouseEvent>) {
-    console.log(e.currentTarget.id);
-    console.log(tokens);
+    //console.log(e.currentTarget.id);
+    console.log(tokenNames);
+    console.log(userAccounts);
     /*const value = userAccounts.userAccounts;
     value.forEach(element => { 
       console.log('New token acct');

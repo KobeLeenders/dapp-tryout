@@ -1,5 +1,5 @@
 export * from "./useUserAccounts";
-export * from "./useGroupedTokenAccounts";
+export * from "./useGroupedAuxTokenAccounts";
 export * from "./useAccountByMint";
 export * from "./useTokenName";
 export * from "./useUserBalance";
