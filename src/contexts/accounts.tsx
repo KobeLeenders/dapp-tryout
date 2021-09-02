@@ -368,7 +368,7 @@ export function AccountsProvider({ children = null as any }) {
   const [userAccounts, setUserAccounts] = useState<TokenAccount[]>([]);
   const { nativeAccount } = UseNativeAccount();
   const [migTokenAccounts, setMigTokenAccounts] = useState();
-  const [ataMap, setAtaMap] = useState<Map<string, TokenAccount>>(new Map());
+  const [ataMap, setAtaMap] = useState<Map<string, TokenAccount | any>>(new Map());
 
   const selectUserAccounts = useCallback(() => {
     if (!publicKey) {
@@ -432,17 +432,10 @@ export function AccountsProvider({ children = null as any }) {
           // TODO: do we need a better way to identify layout (maybe a enum identifing type?)
           if (info.accountInfo.data.length === AccountLayout.span) {
             const data = deserializeAccount(info.accountInfo.data);
-            //console.log('data');
-            //console.log(dataq);
 
             if (PRECACHED_OWNERS.has(data.owner.toBase58())) {
-              console.log('selectUserAccounts');
-              //const buffer = Buffer.from(info.accountInfo.data);
-              //const data = deserializeAccount(buffer);
-              //console.log(data);
               cache.add(id, info.accountInfo, TokenAccountParser);
               const test = selectUserAccounts()
-              console.log(test);
               setTokenAccounts(test);
             }
           }
@@ -686,7 +679,7 @@ const getAssociatedTokenAddresses = async (
   accounts: TokenAccount[],
   connection: Connection,
 ) => {
-  const tempMap: Map<string, TokenAccount> = new Map();
+  const tempMap: Map<string, TokenAccount | any> = new Map();
 
   for (const info of accounts) {
     const mint = info.info.mint;
@@ -703,18 +696,13 @@ const getAssociatedTokenAddresses = async (
       if (ataInfo) {
         const data = TokenAccountParser(ata, ataInfo)
         tempMap.set(mint.toString(), data);
+      } else {
+        tempMap.set(mint.toString(), {pubkey: ata});
       }
     }
   }
 
   return tempMap;
-  //const hasAta = ataCache.has(mint);
-
-  /*if (mint && owner) {
-    getAssociatedTokenAddress(owner, mint).then((ata) => {
-      ataCache.set(mint, ata);
-    })    
-  }*/
 }
 
 

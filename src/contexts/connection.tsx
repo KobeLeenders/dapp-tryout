@@ -120,8 +120,6 @@ export function ConnectionProvider({ children = undefined as any }) {
       const accounts = await getMultipleAccounts(connection, [...knownMints.keys()], 'single');
       accounts.keys.forEach((key, index) => {
         const account = accounts.array[index];
-        console.log('key');
-        console.log('HIEEEER ' + key);
         if(!account) {
           return;
         }

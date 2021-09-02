@@ -3,6 +3,7 @@ import { ButtonProps } from "antd/lib/button";
 import React, { useCallback } from "react";
 import { LABELS } from "../../constants";
 import { useTokenCards } from "../../hooks";
+import "./style.less";
 
 export interface ConnectButtonProps
   extends ButtonProps,
@@ -34,15 +35,15 @@ export const MigrateableTokenDisplay = (props: ButtonProps) => {
           <Row justify="space-around">
             <Col span={8}>
               <Row>
-                <Col>
+                <Col span={4}>
                   <span className="dot"></span>
                 </Col>
-                <Col>
+                <Col span={20}>
                   <div>
                     {tokenCard.tokenName}
                   </div>
                   <div>
-                    <small>Asset</small>
+                    <small className='card-subtext'>Asset</small>
                   </div>
                 </Col>
               </Row>
@@ -53,23 +54,23 @@ export const MigrateableTokenDisplay = (props: ButtonProps) => {
                   {truncateString(tokenCard.mint)}
                 </div>
                 <div>
-                  <small>Account</small>
+                  <small className='card-subtext'>Account</small>
                 </div>
               </div>
 
             </Col>
             <Col span={4}>
-              <div>
+              <div style={{textAlign: 'right', fontWeight: 'bold'}}>
                 <div>
                   {tokenCard.balance}
                 </div>
                 <div>
-                  <small>= ${tokenCard.balanceUSD}</small>
+                  <small className='card-subtext'>= ${tokenCard.balanceUSD}</small>
                 </div>
               </div>
             </Col>
-            <Col span={8}>
-              <button className='step-button' key={tokenCard.mint} id={tokenCard.mint} onClick={(e) => { handleMuttonButtonClick(e) }}>Migrate</button>
+            <Col className='step-button-section' span={8}>
+              <button className='step-button' key={tokenCard.mint} id={tokenCard.mint} onClick={(e) => { handleMuttonButtonClick(e) }}>Migrate {tokenCard.tokenName}</button>
             </Col>
           </Row>
         </Card>

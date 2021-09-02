@@ -4,12 +4,10 @@ import { cache, useAccountsContext } from "../contexts/accounts";
 import { fromLamports, getTokenName } from "../utils/utils";
 import { useConnection } from "../contexts/connection";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { groupTokens } from "../utils/token";
 import { useUserAccounts } from "./useUserAccounts";
 import { useAssociatedTokenAccounts } from "./useAssociatedTokenAccounts";
 
 export function useGroupedAuxTokenAccounts() {
-  const context = useAccountsContext();
   const { userAccounts } = useUserAccounts();
   const { ataMap } = useAssociatedTokenAccounts();
   const groupedTokenAccounts = new Map<string, TokenAccount[]>();

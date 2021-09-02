@@ -242,3 +242,15 @@ export function convert(
 
   return result;
 }
+
+export function calculateBalances(
+  tokenAccounts: TokenAccount[],
+  ata?: TokenAccount | any,
+): number {
+
+  const ataBalance = Number(ata?.info?.amount ? ata.info.amount : 0);
+
+  const tokenBalance = Number(tokenAccounts.reduce((a: any, b: any) => a + b.info.amount.toNumber(), 0) ?? 0);
+  
+  return ataBalance + tokenBalance;
+}

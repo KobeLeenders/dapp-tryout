@@ -10,6 +10,7 @@ import { TOKEN_PROGRAM_ID, WRAPPED_SOL_MINT } from "../utils/ids";
 import { GroupedTokenAccounts, TokenAccount } from "../models";
 import { ASSOCIATED_TOKEN_PROGRAM_ID, cache, TokenAccountParser } from "./../contexts/accounts";
 import { createUninitializedAccount } from "./account";
+import { calculateBalances } from "../utils/utils";
 
 export function createDuplicateTokenAccount(
     instructions: TransactionInstruction[],
@@ -46,37 +47,41 @@ export function createDuplicateTokenAccount(
 export function mergeTokens(
     instructions: TransactionInstruction[],
     groupedTokenAccounts: Map<string, TokenAccount[]>,
-    connection: Connection,
+    ataMap: Map<string, TokenAccount>,
     owner: PublicKey,
     signers: Account[],
     mint?: PublicKey,
 ) {
-    const mergeableList = mint ? [mint.toString()] : Object.keys(groupedTokenAccounts);
+    const mergeableList = mint ? [mint.toString()] : Array.from( groupedTokenAccounts.keys() );
 
     mergeableList.forEach((key) => {
-        const ata = groupedTokenAccounts.get(key);
-        const ataInfo = groupedTokenAccounts[key].ataInfo;
-        const auxAccts = groupedTokenAccounts[key].auxAccounts;
-        const balances = groupedTokenAccounts[key].balances;
+        const ataInfo = ataMap.get(key);
+        const auxAccts = groupedTokenAccounts.get(key);
 
-        if (!ataInfo) {
+        if (!auxAccts || !ataInfo) {
+            return
+        }
+        
+        const balances = calculateBalances(auxAccts, ataInfo);
+
+        if (!ataInfo.info) {
+            console.log('creating ata');
             instructions.push(
-                Token.createAssociatedTokenAccountInstruction(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, new PublicKey(key), new PublicKey(ata), owner, owner)
+                Token.createAssociatedTokenAccountInstruction(ASSOCIATED_TOKEN_PROGRAM_ID, TOKEN_PROGRAM_ID, new PublicKey(key), ataInfo.pubkey, owner, owner)
             );
         }
-        for (let i = 0; i < auxAccts.length; i++) {
-            const auxAcc = auxAccts[i];
-            const balance = balances[i];
 
+        auxAccts.forEach(auxAcct => {
             instructions.push(
-                Token.createTransferInstruction(TOKEN_PROGRAM_ID, new PublicKey(auxAcc), new PublicKey(ata), owner, signers, new U64(balance))
+                Token.createTransferInstruction(TOKEN_PROGRAM_ID, auxAcct.pubkey, ataInfo.pubkey, owner, signers, auxAcct.info.amount)
             );
 
 
             instructions.push(
-                Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, new PublicKey(auxAcc), new PublicKey(ata), owner, signers)
+                Token.createCloseAccountInstruction(TOKEN_PROGRAM_ID, auxAcct.pubkey, ataInfo.pubkey, owner, signers)
             );
-        }
+                        
+        });
     })
     return;
 

@@ -10,17 +10,15 @@ import { createDuplicateTokenAccount } from "../../actions";
 import { useConnection } from "../../contexts/connection";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { TransactionInstruction, PublicKey, Transaction } from "@solana/web3.js";
-import { useUserBalance } from "../../hooks";
 
 
 export const HomeView = () => {
   const connection = useConnection();
   const { publicKey, signTransaction } = useWallet();
+
   const [ mint, setMint] = useState('C4xYD4886ZDDFNnKHAJ11RSCQSnhuMED2qcz8mJiytNb');
 
   const handleMintChange = (e: any) =>setMint(e.target.value);
-
-  const test = useUserBalance();
 
   const handleDuplicateAccountCreation = useCallback(async () => {
     try {
@@ -34,7 +32,7 @@ export const HomeView = () => {
       const mintTestToken = new PublicKey(mint);
 
       // Creates 2 aux
-      const value = await createDuplicateTokenAccount(instructions, publicKey, 2500000, mintTestToken, publicKey,  signers)
+      const value = createDuplicateTokenAccount(instructions, publicKey, 2500000, mintTestToken, publicKey,  signers)
 
       instructions.forEach(instruct => {
         transaction.add(instruct);
@@ -61,6 +59,7 @@ export const HomeView = () => {
   return (
     <Row gutter={[16, 16]} className='home-page' align="top">
       <Col span={12}>
+        <h3>Insert a token mint address below to create multiple auxilary accounts of that token</h3>
         <ConnectButton type="primary" onClick={handleDuplicateAccountCreation}>
             Scramble mint
         </ConnectButton>
