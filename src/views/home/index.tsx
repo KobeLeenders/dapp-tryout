@@ -33,7 +33,6 @@ export const HomeView = () => {
       const mintTestToken = new PublicKey(mint);
 
       // Creates 2 aux
-      console.log(mintTestToken.toString());
       const value = await createDuplicateTokenAccount(instructions, publicKey, connection, mintTestToken, publicKey,  signers);
 
       // Walletadapter type doesn't work correctly
