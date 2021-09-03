@@ -33,12 +33,17 @@ export const MigrateableTokenDisplay = (props: ButtonProps) => {
       {tokenCardsData.map(tokenCard => (
         <Card className='token-card' key={tokenCard.mint}>
           <Row justify="space-around">
-            <Col span={8}>
+            <Col span={7}>
               <Row>
-                <Col span={4}>
-                  <span className="dot"></span>
+                <Col>
+                  {tokenCard.icon ? (
+                    <span className="dot"></span>
+                  ) : (
+                    <span className="dot" style={{backgroundImage: `url(${tokenCard.icon})`}}></span>
+                  )}
+                  
                 </Col>
-                <Col span={20}>
+                <Col>
                   <div>
                     {tokenCard.tokenName}
                   </div>
@@ -48,7 +53,7 @@ export const MigrateableTokenDisplay = (props: ButtonProps) => {
                 </Col>
               </Row>
             </Col>
-            <Col span={4}>
+            <Col span={5}>
               <div>
                 <div style={{ color: '#05bb8c' }}>
                   {truncateString(tokenCard.mint)}
@@ -59,7 +64,7 @@ export const MigrateableTokenDisplay = (props: ButtonProps) => {
               </div>
 
             </Col>
-            <Col span={4}>
+            <Col span={5}>
               <div style={{textAlign: 'right', fontWeight: 'bold'}}>
                 <div>
                   {tokenCard.balance}
@@ -69,7 +74,7 @@ export const MigrateableTokenDisplay = (props: ButtonProps) => {
                 </div>
               </div>
             </Col>
-            <Col className='step-button-section' span={8}>
+            <Col className='step-button-section' span={7}>
               <button className='step-button' key={tokenCard.mint} id={tokenCard.mint} onClick={(e) => { handleMuttonButtonClick(e) }}>Migrate {tokenCard.tokenName}</button>
             </Col>
           </Row>
@@ -81,59 +86,3 @@ export const MigrateableTokenDisplay = (props: ButtonProps) => {
   )
 
 }
-
-
-/*
-  useEffect(() => {
-      var tempTokenCards: any[] = [];
-      tokenCardsData.forEach((tokenCard) => {
-        setTokenCards(tempTokenCards.concat(
-          <Card className='token-card' key={tokenCard.mint}>
-            <Row justify="space-around">
-              <Col span={8}>
-                <Row>
-                  <Col>
-                    <span className="dot"></span>
-                  </Col>
-                  <Col>
-                    <div>
-                      {tokenCard.tokenName}
-                    </div>
-                    <div>
-                      <small>Asset</small>
-                    </div>
-                  </Col>
-                </Row>
-              </Col>
-              <Col span={4}>
-                <div>
-                  <div style={{ color: '#05bb8c' }}>
-                    {truncateString(tokenCard.mint)}
-                  </div>
-                  <div>
-                    <small>Account</small>
-                  </div>
-                </div>
-
-              </Col>
-              <Col span={4}>
-                <div>
-                  <div>
-                    {tokenCard.balance}
-                  </div>
-                  <div>
-                    <small>= ${tokenCard.balanceUSD}</small>
-                  </div>
-                </div>
-                </Col>
-              <Col span={8}>
-                <button className='step-button' onClick={(e) => { clickMigrate(tokenCard.mint) }}>Migrate</button>
-                </Col>
-            </Row>
-          </Card>
-        ));
-      })
-  }, [tokenCardsData, signTransaction]);
-
-
-*/

@@ -101,7 +101,6 @@ export function ConnectionProvider({ children = undefined as any }) {
 
   const [tokens, setTokens] = useState<TokenInfo[]>([]);
   const [tokenMap, setTokenMap] = useState<Map<string, TokenInfo>>(new Map());
-  const [ataMap, setAtaMap] = useState<Map<string, PublicKey>>(new Map());
 
   useEffect(() => {
     cache.clear();

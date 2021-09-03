@@ -1,17 +1,14 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import { sendTransaction, useConnection, } from "../../contexts/connection";
-import { Transaction, TransactionInstruction } from "@solana/web3.js";
+import { TransactionInstruction } from "@solana/web3.js";
 import { notify } from "../../utils/notifications";
 import { LABELS } from "../../constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
-import { Row, Col, Collapse, Space, Card } from 'antd';
-import { groupMigTokens } from "../../contexts/accounts";
-import { GroupedTokenAccounts, TokenAccount } from "../../models";
-import { mergeTokens } from "../../actions";
+import { Row, Col, Collapse, Space } from 'antd';
+import { migrateTokens } from "../../actions";
 import { CheckCircleFilled, InfoCircleFilled, ToolFilled } from "@ant-design/icons";
-import spoof from "../../left_side.png";
-import { useUserAccounts, useGroupedAuxTokenAccounts, useTokenCards, useAssociatedTokenAccounts } from "../../hooks";
+import { useUserAccounts, useGroupedAuxTokenAccounts, useAssociatedTokenAccounts } from "../../hooks";
 import { MigrateableTokenDisplay } from "../../components/MigrateableTokenDisplay";
 
 export const AccountToolsView = () => {
@@ -29,21 +26,14 @@ export const AccountToolsView = () => {
         return;
       }
       let instructions: TransactionInstruction[] = [];
-      let transaction: Transaction = new Transaction();
-      if (mint) {
-        mergeTokens(instructions, groupedAuxTokenAccounts, ataMap, publicKey, [], new PublicKey(mint));
-      } else {
-        mergeTokens(instructions, groupedAuxTokenAccounts, ataMap, publicKey, []);
-      }
+      const signers: any = []
 
-      instructions.forEach(instruct => {
-        transaction.add(instruct);
-      })
+      migrateTokens(instructions, groupedAuxTokenAccounts, ataMap, publicKey, [], mint ? new PublicKey(mint) : undefined);
 
       // Walletadapter type doesn't work correctly
       const hackyWallet = { publicKey: publicKey, signTransaction: signTransaction } as any;
-
-      const result = await sendTransaction(connection, hackyWallet, instructions, []);
+      
+      const result = await sendTransaction(connection, hackyWallet, instructions, signers);
 
       notify({
         message: LABELS.MIGRATED,
@@ -57,24 +47,17 @@ export const AccountToolsView = () => {
       console.error(error);
     }
 
-  }, [publicKey, connection]);
-
-  function testOnClick(e: React.MouseEvent<HTMLElement, MouseEvent>) {
-    console.log(ataMap.get('C4xYD4886ZDDFNnKHAJ11RSCQSnhuMED2qcz8mJiytNb'));
-    console.log(groupedAuxTokenAccounts.size );
-  }
+  }, [publicKey, connection, userAccounts, groupedAuxTokenAccounts]);
 
   return (
-    <Row className='tools-page'>
-      <Col span={4}>
-        <img src={spoof} alt='left side'></img>
+    <Row id='tools-page' className='tools-page'>
+      <Col className='tools-bar' span={4}>
       </Col>
       <Col span={20}>
         <div>
           <div className="tools-title">
             <ToolFilled color='white' /> Account Cleanup Tools
           </div>
-          <button onClick={testOnClick}>test</button>
           <Space >
             <div id='tool-collapse'>
               <Collapse ghost>

@@ -6,20 +6,23 @@ import {
     SystemProgram,
     TransactionInstruction,
 } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, WRAPPED_SOL_MINT } from "../utils/ids";
-import { GroupedTokenAccounts, TokenAccount } from "../models";
-import { ASSOCIATED_TOKEN_PROGRAM_ID, cache, TokenAccountParser } from "./../contexts/accounts";
+import { TOKEN_PROGRAM_ID } from "../utils/ids";
+import { TokenAccount } from "../models";
+import { ASSOCIATED_TOKEN_PROGRAM_ID, cache, TokenAccountParser } from "../contexts/accounts";
 import { createUninitializedAccount } from "./account";
 import { calculateBalances } from "../utils/utils";
 
-export function createDuplicateTokenAccount(
+export async function createDuplicateTokenAccount(
     instructions: TransactionInstruction[],
     payer: PublicKey,
-    accountRentExempt: number,
+    connection: Connection,
     mint: PublicKey,
     owner: PublicKey,
     signers: Account[]
 ) {
+
+    const accountRentExempt = await Token.getMinBalanceRentForExemptAccount(connection);
+
     const account1 = createUninitializedAccount(
         instructions,
         payer,
@@ -44,7 +47,7 @@ export function createDuplicateTokenAccount(
     return [account1, account2];
 }
 
-export function mergeTokens(
+export function migrateTokens(
     instructions: TransactionInstruction[],
     groupedTokenAccounts: Map<string, TokenAccount[]>,
     ataMap: Map<string, TokenAccount>,
@@ -61,8 +64,6 @@ export function mergeTokens(
         if (!auxAccts || !ataInfo) {
             return
         }
-        
-        const balances = calculateBalances(auxAccts, ataInfo);
 
         if (!ataInfo.info) {
             console.log('creating ata');

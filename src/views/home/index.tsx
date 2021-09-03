@@ -1,5 +1,5 @@
 import { Button, Col, Input, Row } from "antd";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { sendTransaction } from "../../contexts/connection";
 
@@ -16,9 +16,11 @@ export const HomeView = () => {
   const connection = useConnection();
   const { publicKey, signTransaction } = useWallet();
 
-  const [ mint, setMint] = useState('C4xYD4886ZDDFNnKHAJ11RSCQSnhuMED2qcz8mJiytNb');
+  const [ mint, setMint] = useState('');
 
-  const handleMintChange = (e: any) =>setMint(e.target.value);
+  const handleMintChange = (e: any) => {
+    setMint(e.target.value);
+  }
 
   const handleDuplicateAccountCreation = useCallback(async () => {
     try {
@@ -26,17 +28,13 @@ export const HomeView = () => {
         return;
       }
       let instructions: TransactionInstruction[] = [];
-      let transaction: Transaction = new Transaction();
 
       const signers: any = []
       const mintTestToken = new PublicKey(mint);
 
       // Creates 2 aux
-      const value = createDuplicateTokenAccount(instructions, publicKey, 2500000, mintTestToken, publicKey,  signers)
-
-      instructions.forEach(instruct => {
-        transaction.add(instruct);
-      })
+      console.log(mintTestToken.toString());
+      const value = await createDuplicateTokenAccount(instructions, publicKey, connection, mintTestToken, publicKey,  signers);
 
       // Walletadapter type doesn't work correctly
       const hackyWallet = {publicKey: publicKey, signTransaction: signTransaction } as any;
@@ -54,7 +52,7 @@ export const HomeView = () => {
       });
       console.error(error);
     }
-  }, [publicKey, connection]);
+  }, [publicKey, connection, mint]);
 
   return (
     <Row gutter={[16, 16]} className='home-page' align="top">

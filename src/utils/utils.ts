@@ -246,11 +246,14 @@ export function convert(
 export function calculateBalances(
   tokenAccounts: TokenAccount[],
   ata?: TokenAccount | any,
+  decimals?: number,
 ): number {
 
   const ataBalance = Number(ata?.info?.amount ? ata.info.amount : 0);
 
-  const tokenBalance = Number(tokenAccounts.reduce((a: any, b: any) => a + b.info.amount.toNumber(), 0) ?? 0);
+  const auxBalance = Number(tokenAccounts.reduce((a: any, b: any) => a + b.info.amount.toNumber(), 0) ?? 0);
+
+  const totalBalance = (ataBalance + auxBalance) / ( Math.pow(10, decimals ? decimals: 0));
   
-  return ataBalance + tokenBalance;
+  return totalBalance;
 }

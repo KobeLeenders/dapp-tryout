@@ -9,7 +9,7 @@ import {
   TokenAccountBalancePair,
 } from "@solana/web3.js";
 import { AccountLayout, u64, MintInfo, MintLayout } from "@solana/spl-token";
-import { GroupedTokenAccounts, TokenAccount } from "./../models";
+import { TokenAccount } from "./../models";
 import { chunks } from "./../utils/utils";
 import { EventEmitter } from "./../utils/eventEmitter";
 import { useUserAccounts } from "../hooks/useUserAccounts";
@@ -22,7 +22,6 @@ const AccountsContext = React.createContext<any>(null);
 
 const pendingCalls = new Map<string, Promise<ParsedAccountBase>>();
 const genericCache = new Map<string, ParsedAccountBase>();
-const ataCache = new Map<string, PublicKey>();
 const transactionCache = new Map<string, ParsedLocalTransaction | null>();
 
 export interface ParsedLocalTransaction {
@@ -166,17 +165,7 @@ export const cache = {
       return;
     }
 
-    const mint = account.info.mint;
-    const owner = account.info.owner;
-
     const isNew = !genericCache.has(address);
-    const hasAta = ataCache.has(mint);
-
-    /*if (mint && owner) {
-      getAssociatedTokenAddress(owner, mint).then((ata) => {
-        ataCache.set(mint, ata);
-      })    
-    }*/
 
     genericCache.set(address, account);
     cache.emitter.raiseCacheUpdated(address, isNew, deserialize);
@@ -345,17 +334,6 @@ const precacheUserTokenAccounts = async (
     programId: programIds().token,
   });
 
-  /*if (mint && owner) {
-    getAssociatedTokenAddress(owner, mint).then((ata) => {
-      ataCache.set(mint, ata);
-    })    
-  }*/
-  /*for (const info of accounts.value) {
-    /*const mint = account.info.mint;
-    const owner = account.info.owner;
-    let ata = (await findAssociatedTokenAddress(publicKey, new PublicKey(key))).toString();*/
-  //}
-
   accounts.value.forEach((info) => {
     cache.add(info.pubkey.toBase58(), info.account, TokenAccountParser);
   });
@@ -367,7 +345,6 @@ export function AccountsProvider({ children = null as any }) {
   const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]);
   const [userAccounts, setUserAccounts] = useState<TokenAccount[]>([]);
   const { nativeAccount } = UseNativeAccount();
-  const [migTokenAccounts, setMigTokenAccounts] = useState();
   const [ataMap, setAtaMap] = useState<Map<string, TokenAccount | any>>(new Map());
 
   const selectUserAccounts = useCallback(() => {
@@ -402,8 +379,14 @@ export function AccountsProvider({ children = null as any }) {
       if (args.isNew) {
         let id = args.id;
         let deserialize = args.parser;
+        
         connection.onAccountChange(new PublicKey(id), (info) => {
-          cache.add(id, info, deserialize);
+          if (info.data.length == 0) {
+            cache.delete(id)
+          } else {
+            cache.add(id, info, deserialize);
+          }
+          
         });
       }
     });
@@ -679,7 +662,7 @@ const getAssociatedTokenAddresses = async (
   accounts: TokenAccount[],
   connection: Connection,
 ) => {
-  const tempMap: Map<string, TokenAccount | any> = new Map();
+  const tempAtaMap: Map<string, TokenAccount | any> = new Map();
 
   for (const info of accounts) {
     const mint = info.info.mint;
@@ -693,78 +676,15 @@ const getAssociatedTokenAddresses = async (
         ASSOCIATED_TOKEN_PROGRAM_ID,
       ))[0];
       const ataInfo = await connection.getAccountInfo(new PublicKey(ata));
+
       if (ataInfo) {
         const data = TokenAccountParser(ata, ataInfo)
-        tempMap.set(mint.toString(), data);
+        tempAtaMap.set(mint.toString(), data);
       } else {
-        tempMap.set(mint.toString(), {pubkey: ata});
+        tempAtaMap.set(mint.toString(), {pubkey: ata});
       }
     }
   }
 
-  return tempMap;
-}
-
-
-const findAssociatedTokenAddress = async (
-  walletAddress: PublicKey,
-  tokenMintAddress: PublicKey,
-) => {
-  return (
-    await PublicKey.findProgramAddress(
-      [
-        walletAddress.toBuffer(),
-        TokenInstructions.TOKEN_PROGRAM_ID.toBuffer(),
-        tokenMintAddress.toBuffer(),
-      ],
-      ASSOCIATED_TOKEN_PROGRAM_ID,
-    )
-  )[0];
-}
-
-export const groupMigTokens = async (
-  connection: Connection,
-  publicKey: PublicKey,
-) => {
-  if (!publicKey) {
-    return {};
-  }
-
-  const tokenAccounts = await connection.getParsedTokenAccountsByOwner(publicKey, {
-    programId: TOKEN_PROGRAM_ID,
-  });
-
-  let count = 0;
-  let groupedTokenAccounts: GroupedTokenAccounts = {};
-
-  try {
-    for (const ta of tokenAccounts.value) {
-      const key = ta.account.data.parsed.info.mint.toString();
-      let balance = (await connection.getTokenAccountBalance(ta.pubkey)).value;
-      let balanceFormatted = balance.uiAmount ? balance.uiAmount : 0;
-      let ata = (await findAssociatedTokenAddress(publicKey, new PublicKey(key))).toString();
-      const ataInfo = await connection.getAccountInfo(new PublicKey(ata));
-
-      if (ata !== ta.pubkey.toString()) {
-        if (groupedTokenAccounts[key]) {
-          groupedTokenAccounts[key].auxAccounts.push(ta.pubkey.toString());
-          groupedTokenAccounts[key].balances.push(parseInt(balance.amount));
-          groupedTokenAccounts[key].totalBalance += balanceFormatted;
-        } else {
-          let ataBalance;
-          if (ataInfo) {
-            ataBalance = (await connection.getTokenAccountBalance(new PublicKey(ata))).value.uiAmount;
-          }
-          ataBalance = ataBalance ? ataBalance : 0;
-          const totalBalance = ataBalance + balanceFormatted;
-          groupedTokenAccounts[key] = { auxAccounts: [ta.pubkey.toString()], balances: [parseInt(balance.amount)], ata: ata, ataInfo: ataInfo, totalBalance: totalBalance };
-        }
-
-      }
-    }
-  } catch (e) {
-    console.error(e);
-  }
-
-  return groupedTokenAccounts;
+  return tempAtaMap;
 }

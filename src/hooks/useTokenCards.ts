@@ -1,7 +1,6 @@
-import { calculateBalances, fromLamports, getTokenName } from "../utils/utils";
-import { useConnection, useConnectionConfig } from "../contexts/connection";
+import { calculateBalances, getTokenIcon, getTokenName } from "../utils/utils";
+import { useConnectionConfig } from "../contexts/connection";
 import { useGroupedAuxTokenAccounts } from "./useGroupedAuxTokenAccounts";
-import { PublicKey } from "@solana/web3.js";
 import { useMarkets } from "../contexts/market";
 import { useAssociatedTokenAccounts } from ".";
 
@@ -9,9 +8,9 @@ import { useAssociatedTokenAccounts } from ".";
 export interface TokenCard {
     tokenName: string;
     mint: string;
-    balance: number;
-    balanceUSD: number;
-    decimals: number;
+    balance: string;
+    balanceUSD: string;
+    icon?: string;
 }
 
 export function useTokenCards() {
@@ -24,16 +23,17 @@ export function useTokenCards() {
 
     groupedAuxTokenAccounts.forEach((value, mint) => {
         const ata = ataMap.get(mint);
+        const mintInfo = tokenMap.get(mint.toString()); 
+        const balance = calculateBalances(value, ata, mintInfo?.decimals);       
 
         var tokenCard = <TokenCard>{};
         tokenCard.mint = mint;
         tokenCard.tokenName = getTokenName(tokenMap, mint);
-        tokenCard.balance = calculateBalances(value, ata)
-        tokenCard.balanceUSD = tokenCard.balance * midPriceInUSD(mint || "");
-        //tokenCard.decimals = value[0]
+        tokenCard.balance = balance.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        tokenCard.balanceUSD = (balance * midPriceInUSD(mint || "")).toFixed(2);
+        tokenCard.icon = getTokenIcon(tokenMap, mint);
         tokenCards.push(tokenCard);
     });
     
-
     return tokenCards;
 }

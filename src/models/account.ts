@@ -2,24 +2,11 @@ import {
   Account,
   AccountInfo,
   PublicKey,
-  TokenAccountBalancePair,
   TransactionInstruction,
 } from "@solana/web3.js";
 
 import { AccountInfo as TokenAccountInfo, Token } from "@solana/spl-token";
 import { TOKEN_PROGRAM_ID } from "../utils/ids";
-
-export interface GroupedTokenAccounts {
-  [key: string]: {auxAccounts: [string], balances: [number], ata: string, ataInfo: any, totalBalance: number};
-}
-
-export interface GroupedTokenAccounts2 {
-  key: PublicKey;
-  auxAccounts: TokenAccountBalancePair[];
-  totalBalance: number;
-  ata: PublicKey;
-  ataInfo?: AccountInfo<any>;
-}
 
 export interface TokenAccount {
   pubkey: PublicKey;
