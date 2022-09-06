@@ -1,5 +1,4 @@
-# 🏗 Solana App Scaffold
-Scaffolding for a dapp built on Solana
+# 🏗 Solana Auxilary token merger
 
 ## How it works
 Landing on the application you see 2 buttons. The button on the left is a small tool to create auxiliary token accounts for a specific mint (declared in the input field). When clicking on this button an instruction is created using a new function called 'createDuplicateTokenAccount' that I've created in '/actions/tool.ts'. This instruction creates 2 auxiliary token accounts. When successful a message is posted saying 'Scrambled tokens served'. The functionality of this small tool is fairly simple. When delivering the first time I didn't correctly manage the state of the input field which made it fail every time when using on the Mainnet.
